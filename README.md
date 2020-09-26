@@ -9,6 +9,6 @@
 #### Reviews
 - **http://localhost:8083/reviews** - Reviews to selected movie
 #### Users
-- **http://localhost:8085/users** - List of users
+- **http://localhost:8084/users** - List of users
 #### Bookings
-- **http://localhost:8086/booking** - List of bookings
+- **http://localhost:8085/booking** - List of bookings
