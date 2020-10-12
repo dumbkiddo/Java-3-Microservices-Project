@@ -1,29 +1,24 @@
-package iitu.kz.BookingService.Model;
+package iitu.kz.BookingService.DTO;
 
-import java.util.Date;
-import javax.persistence.Column;
-import javax.persistence.Entity;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.validation.constraints.NotNull;
+import java.util.Date;
 
-@Entity
-@Table(name="booking", catalog="mid_orders")
-public class Booking {
+public class BookingDTO {
 
-    @Id
-    @GeneratedValue(strategy=GenerationType.AUTO)
-    @Column(name="id")
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private Integer id;
 
-    @Column(name="user_id")
+    @NotNull(message="User ID can not be empty")
     private Integer userId;
 
-    @Column(name="orderDate")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @NotNull(message="Booking date can not be empty")
     private Date orderDate;
 
-    @Column(name="total_amount")
+    @NotNull(message="Total can not be empty")
     private Double totalAmount;
 
     public Integer getId() {
@@ -57,5 +52,4 @@ public class Booking {
     public void setTotalAmount(Double totalAmount) {
         this.totalAmount = totalAmount;
     }
-
 }
