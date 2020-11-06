@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Optional;
 
 import javax.validation.Valid;
+
+import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
 import iitu.kz.MovieCatalog.DTO.MovieDTO;
 import iitu.kz.MovieCatalog.Model.Director;
 import iitu.kz.MovieCatalog.Model.Genre;
@@ -49,11 +51,19 @@ public class CatalogController {
         this.genreRepository = genreRepository;
     }
 
+    @HystrixCommand(fallbackMethod = "getAllMovies")
     @GetMapping("/get-all-movies")
     public List<Movie> getAllMovies(){
         return movieRepository.findAll();
     }
 
+    public List<Movie> getAllMoviesFallback() {
+        List<Movie> movieList = new ArrayList<>();
+        movieList.add(new Movie(-1, "Not available", "Not available","Not available"));
+        return movieList;
+    }
+
+    @HystrixCommand(fallbackMethod = "getMovieById")
     @GetMapping("/get-movie/{movieId}")
     public ResponseEntity<MovieDTO> getMovie(@PathVariable("movieId") Integer movieId) {
         Movie movie = null;
@@ -79,6 +89,12 @@ public class CatalogController {
             return new ResponseEntity(movieDTO, HttpStatus.NOT_FOUND);
         }
     }
+
+    public ResponseEntity<MovieDTO> getMovieById(@PathVariable("movieId") Integer movieId){
+        MovieDTO movieDTO = new MovieDTO();
+        return new ResponseEntity(movieDTO, HttpStatus.BAD_REQUEST);
+    }
+
 
     @PostMapping(value="/addMovie",consumes= MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<String>> addNewMovie(@Valid @RequestBody MovieDTO movieDTO, Errors errors) {

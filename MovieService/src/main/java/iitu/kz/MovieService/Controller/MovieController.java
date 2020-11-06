@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
 
 @RestController
 @RequestMapping("/movie")
@@ -41,9 +42,16 @@ public class MovieController {
         this.genreRepository = genreRepository;
     }
 
+    @HystrixCommand(fallbackMethod = "getAllMovies")
     @GetMapping("/get-all-movies")
     public List<Movie> getAllMovies(){
         return movieRepository.findAll();
+    }
+
+    public List<Movie> getAllMoviesFallback() {
+        List<Movie> movieList = new ArrayList<>();
+        movieList.add(new Movie(-1, "Not available", "Not available","Not available"));
+        return movieList;
     }
 
     @PostMapping(value="/addMovie",consumes= MediaType.APPLICATION_JSON_VALUE)

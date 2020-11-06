@@ -11,6 +11,17 @@ import javax.persistence.Table;
 @Table(name="user",catalog="mid_users")
 public class User {
 
+    public User(){
+    }
+
+    public User(int id, String username, String password, String email, String mobile) {
+        this.id=id;
+        this.username=username;
+        this.password=password;
+        this.email=email;
+        this.mobile=mobile;
+    }
+
     @Id
     @GeneratedValue(strategy=GenerationType.IDENTITY)
     @Column(name="id")

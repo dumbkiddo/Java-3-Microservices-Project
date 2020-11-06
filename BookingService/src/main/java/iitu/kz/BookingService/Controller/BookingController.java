@@ -1,5 +1,6 @@
 package iitu.kz.BookingService.Controller;
 
+import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
 import iitu.kz.BookingService.DTO.BookingDTO;
 import iitu.kz.BookingService.Model.Booking;
 import iitu.kz.BookingService.Repository.BookingRepository;
@@ -24,9 +25,14 @@ public class BookingController {
         this.bookingRepository = bookingRepository;
     }
 
+    @HystrixCommand(fallbackMethod = "testFallback")
     @GetMapping("/test")
     public ResponseEntity<String> getTest() {
         return new ResponseEntity<String>("Booking Service is running",HttpStatus.OK);
+    }
+
+    public ResponseEntity<String> testFallback() {
+        return new ResponseEntity<String>("User Service is responding",HttpStatus.BAD_REQUEST);
     }
 
     @PostMapping(value="/addBooking",consumes= MediaType.APPLICATION_JSON_VALUE)

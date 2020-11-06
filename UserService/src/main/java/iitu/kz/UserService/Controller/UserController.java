@@ -1,5 +1,6 @@
 package iitu.kz.UserService.Controller;
 
+import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
 import iitu.kz.UserService.DTO.UserDTO;
 import iitu.kz.UserService.Model.User;
 import iitu.kz.UserService.Repository.UserRepository;
@@ -30,15 +31,27 @@ public class UserController {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
     }
-
+    @HystrixCommand(fallbackMethod = "testFallback")
     @GetMapping("/test")
     public ResponseEntity<String> getTest() {
         return new ResponseEntity<String>("User Service is running",HttpStatus.OK);
     }
 
+    public ResponseEntity<String> testFallback() {
+        return new ResponseEntity<String>("User Service is responding",HttpStatus.BAD_REQUEST);
+    }
+
+    @HystrixCommand(fallbackMethod = "getAllUsersFallback")
+    //, commandProperties = {@HystrixProperty(name = "execution.isolation.thread.timeoutInMilliseconds", value = "1000")})
     @GetMapping("/get-all-users")
     public List<User> getAllUsers(){
         return userRepository.findAll();
+    }
+
+    public List<User> getAllUsersFallback() {
+        List<User> userList = new ArrayList<>();
+        userList.add(new User(-1, "Not available", "Not available","Not available", "Not available"));
+        return userList;
     }
 
     @PostMapping(value="/register",consumes= MediaType.APPLICATION_JSON_VALUE)

@@ -17,6 +17,16 @@ import javax.persistence.Table;
 @Table(name="movie",catalog="mid_catalog")
 public class Movie {
 
+    public Movie(){
+    }
+
+    public Movie(int id, String title, String small_desc, String long_desc) {
+        this.id=id;
+        this.title=title;
+        this.smallDesc=small_desc;
+        this.longDesc=long_desc;
+    }
+
     @Id
     @GeneratedValue(strategy=GenerationType.IDENTITY)
     @Column(name="id")
