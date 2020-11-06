@@ -8,6 +8,7 @@ import java.util.Optional;
 import javax.validation.Valid;
 
 import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
+import com.netflix.hystrix.contrib.javanica.annotation.HystrixProperty;
 import iitu.kz.MovieCatalog.DTO.MovieDTO;
 import iitu.kz.MovieCatalog.Model.Director;
 import iitu.kz.MovieCatalog.Model.Genre;
@@ -51,7 +52,9 @@ public class CatalogController {
         this.genreRepository = genreRepository;
     }
 
-    @HystrixCommand(fallbackMethod = "getAllMovies")
+    @HystrixCommand(fallbackMethod = "getAllMoviesFallback", threadPoolProperties = {
+            @HystrixProperty(name = "coreSize", value = "15"),
+            @HystrixProperty(name = "maxQueueSize", value = "5") })
     @GetMapping("/get-all-movies")
     public List<Movie> getAllMovies(){
         return movieRepository.findAll();
@@ -63,7 +66,9 @@ public class CatalogController {
         return movieList;
     }
 
-    @HystrixCommand(fallbackMethod = "getMovieById")
+    @HystrixCommand(fallbackMethod = "getMovieByIdFallback", threadPoolProperties = {
+            @HystrixProperty(name = "coreSize", value = "15"),
+            @HystrixProperty(name = "maxQueueSize", value = "5") })
     @GetMapping("/get-movie/{movieId}")
     public ResponseEntity<MovieDTO> getMovie(@PathVariable("movieId") Integer movieId) {
         Movie movie = null;
@@ -90,12 +95,12 @@ public class CatalogController {
         }
     }
 
-    public ResponseEntity<MovieDTO> getMovieById(@PathVariable("movieId") Integer movieId){
+    public ResponseEntity<MovieDTO> getMovieByIdFallback(@PathVariable("movieId") Integer movieId){
         MovieDTO movieDTO = new MovieDTO();
         return new ResponseEntity(movieDTO, HttpStatus.BAD_REQUEST);
     }
 
-
+    @HystrixCommand
     @PostMapping(value="/addMovie",consumes= MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<String>> addNewMovie(@Valid @RequestBody MovieDTO movieDTO, Errors errors) {
 

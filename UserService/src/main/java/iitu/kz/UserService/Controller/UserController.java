@@ -1,6 +1,7 @@
 package iitu.kz.UserService.Controller;
 
 import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
+import com.netflix.hystrix.contrib.javanica.annotation.HystrixProperty;
 import iitu.kz.UserService.DTO.UserDTO;
 import iitu.kz.UserService.Model.User;
 import iitu.kz.UserService.Repository.UserRepository;
@@ -41,7 +42,9 @@ public class UserController {
         return new ResponseEntity<String>("User Service is responding",HttpStatus.BAD_REQUEST);
     }
 
-    @HystrixCommand(fallbackMethod = "getAllUsersFallback")
+    @HystrixCommand(fallbackMethod = "getAllUsersFallback", threadPoolProperties = {
+            @HystrixProperty(name = "coreSize", value = "15"),
+            @HystrixProperty(name = "maxQueueSize", value = "5") })
     //, commandProperties = {@HystrixProperty(name = "execution.isolation.thread.timeoutInMilliseconds", value = "1000")})
     @GetMapping("/get-all-users")
     public List<User> getAllUsers(){
@@ -54,6 +57,7 @@ public class UserController {
         return userList;
     }
 
+    @HystrixCommand
     @PostMapping(value="/register",consumes= MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<String>> registerNewUser(@Valid @RequestBody UserDTO userDto, Errors errors) {
 

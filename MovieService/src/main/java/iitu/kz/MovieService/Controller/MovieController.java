@@ -1,5 +1,6 @@
 package iitu.kz.MovieService.Controller;
 
+import com.netflix.hystrix.contrib.javanica.annotation.HystrixProperty;
 import iitu.kz.MovieService.DTO.MovieDTO;
 import iitu.kz.MovieService.Model.Director;
 import iitu.kz.MovieService.Model.Genre;
@@ -42,7 +43,9 @@ public class MovieController {
         this.genreRepository = genreRepository;
     }
 
-    @HystrixCommand(fallbackMethod = "getAllMovies")
+    @HystrixCommand(fallbackMethod = "getAllMoviesFallback", threadPoolProperties = {
+            @HystrixProperty(name = "coreSize", value = "15"),
+            @HystrixProperty(name = "maxQueueSize", value = "5") })
     @GetMapping("/get-all-movies")
     public List<Movie> getAllMovies(){
         return movieRepository.findAll();
@@ -54,6 +57,7 @@ public class MovieController {
         return movieList;
     }
 
+    @HystrixCommand
     @PostMapping(value="/addMovie",consumes= MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<String>> addNewBook(@Valid @RequestBody MovieDTO movieDTO, Errors errors) {
 

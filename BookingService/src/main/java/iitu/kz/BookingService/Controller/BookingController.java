@@ -32,9 +32,10 @@ public class BookingController {
     }
 
     public ResponseEntity<String> testFallback() {
-        return new ResponseEntity<String>("User Service is responding",HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<String>("Booking Service is responding",HttpStatus.BAD_REQUEST);
     }
 
+    @HystrixCommand
     @PostMapping(value="/addBooking",consumes= MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<String>> registerNewUser(@Valid @RequestBody BookingDTO orderDto, Errors errors) {
 
