@@ -3,12 +3,18 @@ Implementing simple microservices with Spring and Eureka Server in IntelliJ Idea
  
 #### Eureka server
 - **http://localhost:8761** - Viewing running services on Eureka Server 
-#### Movie catalog and details
-- **http://localhost:8081/catalog** - List of movies
-- **http://localhost:8082/description** - Movie descriptions
-#### Reviews
-- **http://localhost:8083/reviews** - Reviews to selected movie
-#### Users
-- **http://localhost:8085/users** - List of users
-#### Bookings
-- **http://localhost:8086/booking** - List of bookings
+#### User
+- **http://localhost:8081** - List of users
+- **http://localhost:8081/user/register** - Adding new users
+#### Movie 
+- **http://localhost:8082** - Movie page
+- **http://localhost:8082/movie/addMovie** - Adding new movies
+#### Booking
+- **http://localhost:8083** - List of bookings
+- **http://localhost:8083/booking/addBooking** - Adding new bookings
+#### Catalog
+- **http://localhost:8084** - List of all movies
+- **http://localhost:8084/catalog/movie/get-all-movies** - List of all movies
+- **http://localhost:8084/catalog/get-movie/id** - Get movie by id
+#### Current Shows
+- **http://localhost:8085**
