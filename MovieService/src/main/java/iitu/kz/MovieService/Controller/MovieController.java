@@ -57,6 +57,35 @@ public class MovieController {
         return movieList;
     }
 
+    @HystrixCommand(fallbackMethod = "getMovieByIdFallback", threadPoolProperties = {
+            @HystrixProperty(name = "coreSize", value = "15"),
+            @HystrixProperty(name = "maxQueueSize", value = "5") })
+    @GetMapping("/get-movie/{movieId}")
+        public ResponseEntity<MovieDTO> getMovie(@PathVariable("movieId") Integer movieId) {
+        Movie movie = null;
+        Optional<Movie> movieData =  movieRepository.findById(movieId);
+        if(movieData.isPresent()) {
+            movie =  movieData.get();
+        }
+
+        MovieDTO movieDTO = new MovieDTO();
+        if(movie !=null) {
+
+            movieDTO.setMovieId(movieId);
+            movieDTO.setGenre(movie.getGenre().getId());
+            movieDTO.setLongDesc(movie.getLongDesc());
+            movieDTO.setPrice(movie.getPrice());
+            movieDTO.setDirectorId(movie.getDirector().getId());
+            movieDTO.setSmallDesc(movie.getSmallDesc());
+            movieDTO.setTitle(movie.getTitle());
+            movieDTO.setPort(env.getProperty("local.server.port"));
+
+            return new ResponseEntity(movieDTO,HttpStatus.OK);
+        }else {
+            return new ResponseEntity(movieDTO, HttpStatus.NOT_FOUND);
+        }
+    }
+
     @HystrixCommand
     @PostMapping(value="/addMovie",consumes= MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<String>> addNewBook(@Valid @RequestBody MovieDTO movieDTO, Errors errors) {

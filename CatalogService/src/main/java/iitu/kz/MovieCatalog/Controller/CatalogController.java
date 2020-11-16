@@ -28,7 +28,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
+import org.springframework.web.client.RestTemplate;
+import org.apache.commons.codec.binary.Base64;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 
 @RestController
 @RequestMapping("/catalog")
@@ -45,6 +49,9 @@ public class CatalogController {
 
     @Autowired
     private Environment env;
+
+    @Autowired
+    RestTemplate restTemplate;
 
     public CatalogController(MovieRepository movieRepository, DirectorRepository directorRepository,GenreRepository genreRepository) {
         this.movieRepository = movieRepository;
@@ -66,35 +73,48 @@ public class CatalogController {
         return movieList;
     }
 
+
+//    public ResponseEntity<MovieDTO> getMovie(@PathVariable("movieId") Integer movieId) {
+//        Movie movie = null;
+//        Optional<Movie> movieData =  movieRepository.findById(movieId);
+//        if(movieData.isPresent()) {
+//            movie =  movieData.get();
+//        }
+//
+//        MovieDTO movieDTO = new MovieDTO();
+//        if(movie !=null) {
+//
+//            movieDTO.setBookId(movieId);
+//            movieDTO.setGenre(movie.getGenre().getId());
+//            movieDTO.setLongDesc(movie.getLongDesc());
+//            movieDTO.setPrice(movie.getPrice());
+//            movieDTO.setDirectorId(movie.getDirector().getId());
+//            movieDTO.setSmallDesc(movie.getSmallDesc());
+//            movieDTO.setTitle(movie.getTitle());
+//            movieDTO.setPort(env.getProperty("local.server.port"));
+//
+//            return new ResponseEntity(movieDTO,HttpStatus.OK);
+//        }else {
+//            return new ResponseEntity(movieDTO, HttpStatus.NOT_FOUND);
+//        }
+//    }
+
     @HystrixCommand(fallbackMethod = "getMovieByIdFallback", threadPoolProperties = {
             @HystrixProperty(name = "coreSize", value = "15"),
             @HystrixProperty(name = "maxQueueSize", value = "5") })
     @GetMapping("/get-movie/{movieId}")
-    public ResponseEntity<MovieDTO> getMovie(@PathVariable("movieId") Integer movieId) {
-        Movie movie = null;
-        Optional<Movie> movieData =  movieRepository.findById(movieId);
-        if(movieData.isPresent()) {
-            movie =  movieData.get();
-        }
+    public MovieDTO getMovie(@PathVariable("movieId") Integer movieId){
 
-        MovieDTO movieDTO = new MovieDTO();
-        if(movie !=null) {
+        String apiCredentials = "rest-client:p@ssword";
+        String base64Credentials = new String(Base64.encodeBase64(apiCredentials.getBytes()));
 
-            movieDTO.setBookId(movieId);
-            movieDTO.setCategory(movie.getGenre().getId());
-            movieDTO.setLongDesc(movie.getLongDesc());
-            movieDTO.setPrice(movie.getPrice());
-            movieDTO.setPublisherId(movie.getDirector().getId());
-            movieDTO.setSmallDesc(movie.getSmallDesc());
-            movieDTO.setTitle(movie.getTitle());
-            movieDTO.setPort(env.getProperty("local.server.port"));
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Authorization", "Basic " + base64Credentials);
+        HttpEntity<String> entity = new HttpEntity<>(headers);
 
-            return new ResponseEntity(movieDTO,HttpStatus.OK);
-        }else {
-            return new ResponseEntity(movieDTO, HttpStatus.NOT_FOUND);
-        }
+        return restTemplate.exchange("http://movie-service/movie/get-movie-by-id/" + movieId,
+                HttpMethod.GET, entity, MovieDTO.class).getBody();
     }
-
     public ResponseEntity<MovieDTO> getMovieByIdFallback(@PathVariable("movieId") Integer movieId){
         MovieDTO movieDTO = new MovieDTO();
         return new ResponseEntity(movieDTO, HttpStatus.BAD_REQUEST);
