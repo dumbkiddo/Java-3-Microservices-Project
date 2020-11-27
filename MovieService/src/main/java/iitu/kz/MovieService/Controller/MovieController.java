@@ -57,9 +57,9 @@ public class MovieController {
         return movieList;
     }
 
-    @HystrixCommand(fallbackMethod = "getMovieByIdFallback", threadPoolProperties = {
-            @HystrixProperty(name = "coreSize", value = "15"),
-            @HystrixProperty(name = "maxQueueSize", value = "5") })
+//    @HystrixCommand(fallbackMethod = "getMovieByIdFallback", threadPoolProperties = {
+////            @HystrixProperty(name = "coreSize", value = "15"),
+////            @HystrixProperty(name = "maxQueueSize", value = "5") })
     @GetMapping("/get-movie/{movieId}")
         public ResponseEntity<MovieDTO> getMovie(@PathVariable("movieId") Integer movieId) {
         Movie movie = null;
