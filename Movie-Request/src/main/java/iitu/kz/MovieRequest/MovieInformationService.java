@@ -35,7 +35,7 @@ public class MovieInformationService {
         headers.add("Authorization", "Basic " + base64Credentials);
         HttpEntity<String> entity = new HttpEntity<>(headers);
 
-        return restTemplate.exchange("http://movie-service/movie/get-movie/" + id,
+        return restTemplate.exchange("http://movie-request-service/movie/get-movie/" + id,
                 HttpMethod.GET, entity, Movie.class).getBody();
     }
 

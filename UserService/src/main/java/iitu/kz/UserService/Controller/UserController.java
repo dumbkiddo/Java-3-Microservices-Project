@@ -2,95 +2,71 @@ package iitu.kz.UserService.Controller;
 
 import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
 import com.netflix.hystrix.contrib.javanica.annotation.HystrixProperty;
-import iitu.kz.UserService.DTO.UserDTO;
+import iitu.kz.UserService.Exceptions.NotFoundException;
 import iitu.kz.UserService.Model.User;
 import iitu.kz.UserService.Repository.UserRepository;
-import org.springframework.cloud.netflix.ribbon.RibbonClient;
-import org.springframework.web.bind.annotation.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import javax.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.validation.Errors;
+import org.springframework.web.bind.annotation.*;
+import javax.validation.Valid;
+import java.util.List;
+import java.util.Optional;
 
-@RibbonClient(name="user-service")
+@RequestMapping("/owners")
+//@RequestMapping("/users")
 @RestController
-@RequestMapping("/user")
-public class UserController {
+@RequiredArgsConstructor
+@Slf4j
+class UserController {
 
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
 
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-
-    public UserController(UserRepository userRepository, PasswordEncoder passwordEncoder) {
-        this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
-    }
-    @HystrixCommand(fallbackMethod = "testFallback")
-    @GetMapping("/test")
-    public ResponseEntity<String> getTest() {
-        return new ResponseEntity<String>("User Service is running",HttpStatus.OK);
+    @HystrixCommand
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    public User createOwner(@Valid @RequestBody User owner) {
+        return userRepository.save(owner);
     }
 
-    public ResponseEntity<String> testFallback() {
-        return new ResponseEntity<String>("User Service is responding",HttpStatus.BAD_REQUEST);
+    @HystrixCommand(fallbackMethod = "findUserFallback",threadPoolProperties = {
+        @HystrixProperty(name = "coreSize", value = "15"),
+        @HystrixProperty(name = "maxQueueSize", value = "5") })
+    @GetMapping(value = "/{ownerId}")
+
+    public Optional<User> findOwner(@PathVariable("ownerId") int ownerId) {
+        return userRepository.findById(ownerId);
     }
 
-    @HystrixCommand(fallbackMethod = "getAllUsersFallback", threadPoolProperties = {
-            @HystrixProperty(name = "coreSize", value = "15"),
-            @HystrixProperty(name = "maxQueueSize", value = "5") })
-    //, commandProperties = {@HystrixProperty(name = "execution.isolation.thread.timeoutInMilliseconds", value = "1000")})
-    @GetMapping("/get-all-users")
-    public List<User> getAllUsers(){
-        return userRepository.findAll();
-    }
-
-    public List<User> getAllUsersFallback() {
-        List<User> userList = new ArrayList<>();
-        userList.add(new User(-1, "Not available", "Not available","Not available", "Not available"));
-        return userList;
+    public Optional<User> findUserFallback(@PathVariable("ownerId") int ownerId) {
+        return userRepository.findById(-1);
     }
 
     @HystrixCommand
-    @PostMapping(value="/register",consumes= MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<List<String>> registerNewUser(@Valid @RequestBody UserDTO userDto, Errors errors) {
+    @GetMapping
+    public List<User> findAll() {
+        return userRepository.findAll();
+    }
 
-        if(userDto.getUsername() != null) {
-            User existingUser = userRepository.findByUsername(userDto.getUsername());
-            if(existingUser !=null) {
+    @HystrixCommand(fallbackMethod = "updateUserFallback",threadPoolProperties = {
+        @HystrixProperty(name = "coreSize", value = "15"),
+        @HystrixProperty(name = "maxQueueSize", value = "5") })
+    @PutMapping(value = "/{ownerId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+   public void updateOwner(@PathVariable("ownerId") int ownerId, @Valid @RequestBody User ownerRequest) {
+        final Optional<User> user = userRepository.findById(ownerId);
+        final User userModel = user.orElseThrow(() -> new NotFoundException("User "+ownerId+" not found"));
+        userModel.setFirstName(ownerRequest.getFirstName());
+        userModel.setLastName(ownerRequest.getLastName());
+        userModel.setCity(ownerRequest.getCity());
+        userModel.setTelephone(ownerRequest.getTelephone());
+        log.info("Saving user {}", userModel);
+        userRepository.save(userModel);
+    }
 
-                errors.reject("Username is not available", "User with this username already exists'"+userDto.getUsername()+"'. ");
-            }
-            existingUser = userRepository.findByEmail(userDto.getEmail());
-            if(existingUser !=null) {
-                errors.reject("Email is not available", "User with this email already exists '"+userDto.getEmail()+"'. ");
-            }
-
-            if(!userDto.getPassword().equalsIgnoreCase(userDto.getConfirmPassword())) {
-                errors.reject("Passwords do not match", "Password and confirmation are not the same");
-            }
-        }
-
-        if(errors.hasErrors()) {
-            List<String> errorMsg = new ArrayList<String>();
-            errors.getAllErrors().forEach(a -> errorMsg.add(a.getDefaultMessage()));
-            return new ResponseEntity<List<String>>(errorMsg, HttpStatus.BAD_REQUEST);
-        }else {
-            User userEntity = new User();
-            userEntity.setUsername(userDto.getUsername());
-            userEntity.setPassword(passwordEncoder.encode(userDto.getPassword()));
-            userEntity.setEmail(userDto.getEmail());
-            userEntity.setMobile(userDto.getMobile());
-
-            userRepository.save(userEntity);
-            List<String> msgLst = Arrays.asList("User registered successfully");
-            return new ResponseEntity<List<String>>(msgLst, HttpStatus.OK);
-        }
+    public void updateUserFallback(@PathVariable("ownerId") int ownerId, @Valid @RequestBody User ownerRequest) {
+        final Optional<User> user = userRepository.findById(-1);
+        final User userModel = user.orElseThrow(() -> new NotFoundException("User "+ownerId+" not found"));
+        log.info("User is not available", userModel);
     }
 }

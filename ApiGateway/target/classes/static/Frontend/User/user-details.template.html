@@ -1,0 +1,51 @@
+<h2>User profile</h2>
+
+<table class="table table-striped">
+    <tr>
+        <th class="col-sm-3">Name</th>
+        <td><b>{{$ctrl.owner.firstName}} {{$ctrl.owner.lastName}}</b></td>
+    </tr>
+    <tr>
+        <th>City</th>
+        <td>{{$ctrl.owner.city}}</td>
+    </tr>
+    <tr>
+        <th>Telephone</th>
+        <td>{{$ctrl.owner.telephone}}</td>
+    </tr>
+
+</table>
+<a class="btn btn-default" ui-sref="ownerEdit({ownerId: $ctrl.owner.id})">Edit user profile</a>
+<hr>
+<a ui-sref="petNew({ownerId: $ctrl.owner.id})" class="btn btn-default">Add new booking</a>
+<h2>Bookings and Reviews</h2>
+
+<table class="table table-striped">
+    <tr ng-repeat="pet in $ctrl.owner.pets track by pet.id">
+        <td valign="top">
+            <dl class="dl-horizontal">
+                <dt>Movie</dt>
+                <dd>{{pet.type.name}}</dd>
+            </dl>
+        </td>
+        <td valign="top">
+            <table class="table-condensed">
+                <tr>
+                    <th>Review</th>
+                </tr>
+                <tr ng-repeat="visit in pet.visits track by visit.id">
+                    <td>{{visit.date | date:'yyyy MMM dd'}}</td>
+                    <td>{{visit.description}}</td>
+                </tr>
+                <tr>
+                    <td>
+                        <a class="btn btn-default" ui-sref="visits({ownerId: $ctrl.owner.id, petId: pet.id})">Add review</a>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+
+
+
