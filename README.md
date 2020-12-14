@@ -10,12 +10,14 @@ Implementing simple microservices with Spring and Eureka Server in IntelliJ Idea
 - **http://localhost:8761** - Viewing running services on Eureka Server 
 #### Gateway 
 - **http://localhost:8081** - Home page
-#### User - manage user details and bookings
+#### User - manage user details 
 - **http://localhost:8082**
 #### Movie - manage available movies
 - **http://localhost:8083**
 #### Review - add reviews to booked movies
 - **http://localhost:8084**
+#### Booking - manage bookings
+- **http://localhost:8085**
 
 
 ### Hystrix dashboard sample with Movies
